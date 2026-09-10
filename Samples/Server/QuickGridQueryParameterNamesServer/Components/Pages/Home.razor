@@ -1,0 +1,94 @@
+﻿@page "/"
+
+<PageTitle>Two QuickGrids</PageTitle>
+
+<h1>Two QuickGrids</h1>
+
+<p>
+    <a href="/">Use shared default names</a> |
+    <a href="/?names=shared-custom">Use the same custom names</a> |
+    <a href="/?names=distinct">Use distinct prefixed names</a>
+</p>
+
+<p><strong>Current mode:</strong> @CurrentMode</p>
+<p>
+    <strong>Expected parameters:</strong>
+    @ExpectedParameters
+</p>
+
+<h2>Products</h2>
+<QuickGrid Items="Products" Pagination="ProductsPagination" QueryParameterNameOptions="ProductsParameterNames">
+    <PropertyColumn Property="@(product => product.Id)" Title="ID" />
+    <PropertyColumn Property="@(product => product.Name)" Title="Name" Sortable="true" />
+    <PropertyColumn Property="@(product => product.Price)" Title="Price" Format="C" />
+</QuickGrid>
+<Paginator State="ProductsPagination" />
+
+<h2>People</h2>
+<QuickGrid Items="People" Pagination="PeoplePagination" QueryParameterNameOptions="PeopleParameterNames">
+    <PropertyColumn Property="@(person => person.Id)" Title="ID" />
+    <PropertyColumn Property="@(person => person.Name)" Title="Name" Sortable="true" />
+    <PropertyColumn Property="@(person => person.City)" Title="City" />
+</QuickGrid>
+<Paginator State="PeoplePagination"/>
+
+@code {
+    [SupplyParameterFromQuery(Name = "names")]
+    public string? ParameterNameMode { get; set; }
+
+    private bool UseDistinctNames => ParameterNameMode == "distinct";
+
+    private bool UseSameCustomNames => ParameterNameMode == "shared-custom";
+
+    private string CurrentMode => ParameterNameMode switch
+    {
+        "distinct" => "Distinct custom names",
+        "shared-custom" => "Same custom names",
+        _ => "Shared defaults"
+    };
+
+    private string ExpectedParameters => ParameterNameMode switch
+    {
+        "distinct" => "products-sort, products-direction, products-page and people-sort, people-direction, people-page",
+        "shared-custom" => "shared-sort, shared-direction and shared-page (shared by both grids)",
+        _ => "sort, direction and page (shared by both grids)"
+    };
+
+    private QueryParameterNameOptions ProductsParameterNames => new(UseDistinctNames ? "products-" : UseSameCustomNames ? "shared-" : "");
+
+    private QueryParameterNameOptions PeopleParameterNames => new(UseDistinctNames ? "people-" : UseSameCustomNames ? "shared-" : "");
+
+    private PaginationState ProductsPagination { get; } = new() { ItemsPerPage = 3 };
+
+    private PaginationState PeoplePagination { get; } = new() { ItemsPerPage = 3 };
+
+    private IQueryable<Product> Products { get; } = new[]
+    {
+        new Product(101, "Desk lamp", 29.99m),
+        new Product(102, "Keyboard", 74.50m),
+        new Product(103, "Monitor", 249.00m),
+        new Product(104, "Mouse", 38.25m),
+        new Product(105, "Notebook", 6.75m),
+        new Product(106, "Webcam", 89.95m),
+        new Product(107, "Headset", 119.00m),
+        new Product(108, "USB hub", 42.40m),
+        new Product(109, "Laptop stand", 57.80m)
+    }.AsQueryable();
+
+    private IQueryable<Person> People { get; } = new[]
+    {
+        new Person(201, "Avery", "Seattle"),
+        new Person(202, "Blake", "Austin"),
+        new Person(203, "Casey", "Boston"),
+        new Person(204, "Drew", "Denver"),
+        new Person(205, "Emery", "Chicago"),
+        new Person(206, "Finley", "Portland"),
+        new Person(207, "Gray", "Miami"),
+        new Person(208, "Hayden", "Phoenix"),
+        new Person(209, "Indigo", "Atlanta")
+    }.AsQueryable();
+
+    private sealed record Product(int Id, string Name, decimal Price);
+
+    private sealed record Person(int Id, string Name, string City);
+}

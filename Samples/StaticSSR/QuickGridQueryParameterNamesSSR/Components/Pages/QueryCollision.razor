@@ -1,0 +1,74 @@
+@page "/query-collision"
+
+<PageTitle>Page query collision</PageTitle>
+
+<h1>Page query collision</h1>
+
+<p>
+    <a href="/query-collision?page=2&sort=active">Use shared default names</a> |
+    <a href="/query-collision?page=2&sort=active&gridNames=prefix">Use the orders- prefix</a> |
+    <a href="/query-collision?page=2&sort=active&gridNames=escaped">Use names containing spaces</a>
+</p>
+
+<dl>
+    <dt>Page-owned wizard step (<code>page</code>)</dt>
+    <dd>@WizardStep</dd>
+    <dt>Page-owned filter (<code>sort</code>)</dt>
+    <dd>@Filter</dd>
+    <dt>Grid naming mode</dt>
+    <dd>@ModeDescription</dd>
+</dl>
+
+<QuickGrid Items="Orders" Pagination="OrderPagination" QueryParameterNameOptions="GridParameterNames">
+    <PropertyColumn Property="@(order => order.Id)" Title="ID" />
+    <PropertyColumn Property="@(order => order.Priority)" Title="Priority" Sortable="true" />
+    <PropertyColumn Property="@(order => order.Customer)" Title="Customer" Sortable="true" />
+</QuickGrid>
+<Paginator State="OrderPagination" />
+
+@code {
+    [SupplyParameterFromQuery(Name = "page")]
+    public int WizardStep { get; set; } = 2;
+
+    [SupplyParameterFromQuery(Name = "sort")]
+    public string Filter { get; set; } = "active";
+
+    [SupplyParameterFromQuery(Name = "gridNames")]
+    public string? GridNameMode { get; set; }
+
+    private string ModeDescription => GridNameMode switch
+    {
+        "prefix" => "orders-sort, orders-direction and orders-page",
+        "escaped" => "order sort, order direction and order page",
+        _ => "sort, direction and page (collides with this page)"
+    };
+
+    private QueryParameterNameOptions GridParameterNames => GridNameMode switch
+    {
+        "prefix" => new("orders-"),
+        "escaped" => new("")
+        {
+            Sort = "order sort",
+            Direction = "order direction",
+            Page = "order page"
+        },
+        _ => new("")
+    };
+
+    private PaginationState OrderPagination { get; } = new() { ItemsPerPage = 3 };
+
+    private IQueryable<Order> Orders { get; } = new[]
+    {
+        new Order(301, "High", "Contoso"),
+        new Order(302, "Low", "Fabrikam"),
+        new Order(303, "Medium", "Adventure Works"),
+        new Order(304, "High", "Tailspin Toys"),
+        new Order(305, "Medium", "Northwind"),
+        new Order(306, "Low", "Wide World Importers"),
+        new Order(307, "High", "Litware"),
+        new Order(308, "Low", "Proseware"),
+        new Order(309, "Medium", "Alpine Ski House")
+    }.AsQueryable();
+
+    private sealed record Order(int Id, string Priority, string Customer);
+}
