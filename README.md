@@ -8,6 +8,13 @@ This repository contains sample applications used to validate ASP.NET Core Issue
 - Validation report and test results
 - Video evidences
 
-The validation covers default query parameter names, custom prefixes, multiple QuickGrid instances, paging, sorting, URL state persistence, and browser navigation scenarios.
+## Deployment / Running the Samples
 
-**Result:** All validation scenarios worked as expected and no issues were observed.
+```bash
+cd QuickGridQueryParameterNamesSSR or cd QuickGridQueryParameterNamesServer
+dotnet restore
+dotnet build
+dotnet run
+```
+
+The validation covers default query parameter names, custom prefixes, multiple QuickGrid instances, paging, sorting, URL state persistence, and browser navigation scenarios.
